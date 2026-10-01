@@ -1,984 +1,1447 @@
-# 🧠 AI Research & Engineering
+# 🩻 Medical MiniLLaVA
 
-<p align="center">
-  <img src="https://img.shields.io/badge/AI-Research%20%26%20Engineering-blue?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Python-PyTorch-yellow?style=for-the-badge&logo=python">
-  <img src="https://img.shields.io/badge/LLMs-Multimodal-purple?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Agents-Systems-green?style=for-the-badge">
-</p>
+### Vision-Language Model Prototype for Chest X-Ray → Text Generation
 
-<p align="center">
+> **A research-oriented multimodal AI prototype combining CLIP vision features with GPT-2 language generation through a trainable visual projection layer.**
 
-### Building AI systems from fundamentals to real-world applications.
-
-**LLMs · VLMs · Multimodal AI · Agents · Reasoning · Computer Vision · Medical AI**
-
-</p>
-
-<p align="center">
-
-<a href="#-ai-roadmap">Roadmap</a> • <a href="#-projects">Projects</a> • <a href="#-ai-tools">AI Tools</a> • <a href="#-website">Website</a> • <a href="#-research-direction">Research</a>
-
-</p>
+[![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-ee4c2c?logo=pytorch)](https://pytorch.org/)
+[![Transformers](https://img.shields.io/badge/Hugging%20Face-Transformers-yellow?logo=huggingface)](https://huggingface.co/docs/transformers)
+[![CLIP](https://img.shields.io/badge/CLIP-ViT--B%2F32-purple)](https://huggingface.co/openai/clip-vit-base-patch32)
+[![GPT-2](https://img.shields.io/badge/GPT--2-Language%20Model-green)](https://huggingface.co/openai-community/gpt2)
+[![CUDA](https://img.shields.io/badge/CUDA-GPU%20Training-76b900?logo=nvidia)](https://developer.nvidia.com/cuda)
 
 ---
 
-# 👋 About
+## 🧠 Overview
 
-I build and study **AI systems across language, vision, multimodal learning, reasoning, and autonomous agents**.
+**Medical MiniLLaVA** is a small research prototype exploring how a pretrained vision encoder and a pretrained language model can be connected to create an image-conditioned text generation system.
 
-My approach is focused on understanding systems from the inside:
+The architecture is inspired by the general idea behind multimodal language models such as LLaVA:
 
 ```text
-Fundamentals
-     ↓
-Architecture
-     ↓
-Implementation
-     ↓
-Training
-     ↓
-Evaluation
-     ↓
-Deployment
-     ↓
-Real AI Systems
+                    IMAGE
+                      │
+                      ▼
+             ┌─────────────────┐
+             │   CLIP ViT-B/32 │
+             │  Vision Encoder │
+             │     FROZEN      │
+             └────────┬────────┘
+                      │
+                 512-D Feature
+                      │
+                      ▼
+             ┌─────────────────┐
+             │ Visual Projection│
+             │    512 → 768     │
+             │    TRAINABLE     │
+             └────────┬────────┘
+                      │
+                Visual Token
+                      │
+                      ▼
+             ┌─────────────────┐
+             │      GPT-2      │
+             │ Language Model  │
+             │     FROZEN      │
+             └────────┬────────┘
+                      │
+                      ▼
+                 GENERATED TEXT
 ```
 
-The goal is not simply to use AI APIs.
+The project is intentionally small.
 
-The goal is to understand how modern AI systems are constructed and turn those ideas into **working research prototypes, tools, models, and applications**.
+It is designed to demonstrate the **engineering and research principles of multimodal model construction**, rather than claim clinical-level medical report generation.
 
 ---
 
-# 🧭 AI Research Roadmap
+# ⚠️ Important: Current Work vs Future Work
 
-My long-term roadmap follows the evolution of modern AI systems:
+This distinction is important.
 
-```text
-                    AI ENGINEERING
-                          │
-                          ▼
-                  ┌───────────────┐
-                  │     LLMs      │
-                  └───────┬───────┘
-                          │
-                          ▼
-                ┌──────────────────┐
-                │ Multimodal AI    │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │      VLMs        │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ Reasoning        │
-                │ Planning         │
-                │ Memory           │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ AI Agents        │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ Multi-Agent      │
-                │ Systems          │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ Production AI    │
-                │ Systems          │
-                └──────────────────┘
-```
+### ✅ Implemented in the current project
+
+* CLIP image encoding
+* GPT-2 language generation
+* 512 → 768 visual projection
+* Visual token injection into GPT-2
+* Frozen pretrained CLIP
+* Frozen pretrained GPT-2
+* Trainable multimodal projection
+* PyTorch training loop
+* CUDA training
+* Checkpoint saving/loading
+* Autoregressive generation
+* End-to-end image → text pipeline
+
+### 🚧 NOT implemented yet
+
+* Real chest X-ray dataset training
+* Large-scale medical report dataset
+* Train/validation/test split
+* Clinical evaluation
+* BLEU/ROUGE/METEOR/CIDEr evaluation
+* Clinical accuracy evaluation
+* Expert radiologist evaluation
+* Production deployment
+* Medical diagnosis capability
+
+Those are **future development stages**, not current results.
 
 ---
 
-# 🧠 Phase 1 — LLMs
+# 🔬 Current Research Prototype
 
-### Goal
+## Model
 
-Understand how language models work by implementing important components rather than treating LLMs as black boxes.
-
-### Topics
-
-* Tokenization
-* Embeddings
-* Positional Encoding
-* Self-Attention
-* Multi-Head Attention
-* Transformer Blocks
-* Causal Masking
-* Layer Normalization
-* Feed-Forward Networks
-* GPT architectures
-* Training loops
-* Optimization
-* Sampling
-* Fine-tuning
-* LoRA / PEFT
-* Evaluation
-
-### Projects
+The final model used in this experiment is:
 
 ```text
-01 ─ Tokenizer
-02 ─ Embedding Model
-03 ─ Attention From Scratch
-04 ─ Transformer From Scratch
-05 ─ GPT From Scratch
-06 ─ GPT Training Pipeline
-07 ─ Fine-Tuning Pipeline
-08 ─ LLM Evaluation
+CLIP ViT-B/32
+      │
+      │ 512 dimensions
+      ▼
+Linear Projection
+      │
+      │ 768 dimensions
+      ▼
+GPT-2
+      │
+      ▼
+Text Generation
 ```
+
+### Components
+
+| Component      | Model                                | Status    |
+| -------------- | ------------------------------------ | --------- |
+| Vision Encoder | `openai/clip-vit-base-patch32`       | Frozen    |
+| Image Feature  | CLIP projected visual representation | 512-D     |
+| Projection     | Linear `512 → 768`                   | Trainable |
+| Language Model | `gpt2`                               | Frozen    |
+| Tokenizer      | GPT-2 tokenizer                      | Used      |
+| Framework      | PyTorch + Transformers               | Used      |
+| Hardware       | CUDA GPU                             | Used      |
 
 ---
 
-# 👁️ Phase 2 — Computer Vision
+# 🧩 The Trainable Component
 
-Build visual intelligence from fundamental architectures to modern vision models.
+The actual trainable module is intentionally simple:
 
-### Topics
+```python
+class SimpleProjection(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.linear = nn.Linear(512, 768)
 
-* CNNs
-* ResNet
-* Vision Transformers
-* ViT
-* Object Detection
-* Image Segmentation
-* Representation Learning
-* Contrastive Learning
-* CLIP
-* 3D Vision
+    def forward(self, x):
+        return self.linear(x)
+```
 
-### Projects
+This produces:
 
 ```text
-CNN
- ↓
-ResNet
- ↓
-ViT
- ↓
-CLIP
- ↓
-3D Vision
- ↓
-World Models
+Input:
+512-dimensional CLIP representation
+
+        ↓
+
+Linear Layer
+
+        ↓
+
+Output:
+768-dimensional GPT-2 embedding
 ```
+
+### Trainable parameters
+
+```text
+393,984 parameters
+```
+
+Only the projection layer is trained.
+
+CLIP and GPT-2 remain frozen.
 
 ---
 
-# 🌐 Phase 3 — Multimodal AI
+# 🧠 Multimodal Conditioning
 
-Connect different modalities into a single AI system.
+The projected image representation becomes a visual token.
 
-```text
-Text
- │
- ├──────────────┐
- │              │
- ▼              ▼
-Language       Vision
- │              │
- └──────┬───────┘
-        ▼
-   Multimodal AI
-```
-
-### Areas
-
-* Vision + Language
-* Image + Text
-* Audio + Text
-* Video + Language
-* 3D + Language
-* Multimodal Embeddings
-* Cross-Modal Attention
-* Vision-Language Alignment
-
-### Projects
+The system constructs:
 
 ```text
-CLIP
-Medical AI
-MiniLLaVA
-Vision-Language Models
-Multimodal Agents
+[VISUAL TOKEN] + [TEXT TOKENS]
 ```
 
----
+The resulting embeddings are passed to GPT-2 through:
 
-# 👁️‍🗨️ Phase 4 — VLMs
+```python
+inputs_embeds
+```
 
-Build increasingly capable Vision-Language Models.
+The attention mask is also extended so that GPT-2 can process the visual token together with the text sequence.
 
-### Architecture
+This creates the fundamental multimodal pathway:
 
 ```text
 Image
   ↓
-Vision Encoder
+CLIP
   ↓
-Visual Features
+Visual Embedding
   ↓
-Multimodal Connector
+Projection
   ↓
-Language Model
+Visual Token
+  ↓
+GPT-2
+  ↓
+Generated Language
+```
+
+---
+
+# 📊 Current Dataset
+
+## ⚠️ Synthetic Prototype Dataset
+
+The current experiment does **not** use a real medical dataset.
+
+It uses four synthetic RGB images created with PIL:
+
+```python
+Image.new("RGB", (224, 224), color=(50, 50, 50))
+Image.new("RGB", (224, 224), color=(100, 100, 100))
+Image.new("RGB", (224, 224), color=(120, 120, 120))
+Image.new("RGB", (224, 224), color=(140, 140, 140))
+```
+
+The corresponding captions were:
+
+```text
+1. Normal chest X-ray with clear lungs
+
+2. Pneumonia detected in lower left lobe
+
+3. Mild pleural effusion on right side
+
+4. Clear bilateral lungs without disease
+```
+
+### Dataset size
+
+```text
+Images:        4
+Captions:      4
+Image size:    224 × 224
+Batch size:    2
+Max sequence:  50 tokens
+```
+
+This dataset is suitable only for demonstrating the **pipeline and implementation**.
+
+It is not sufficient to learn medical visual-language alignment.
+
+---
+
+# ⚙️ Training Configuration
+
+```text
+Epochs:              3
+Batch size:          2
+Learning rate:       1e-4
+Optimizer:           Adam
+Loss:                Cross Entropy
+Gradient clipping:   1.0
+Trainable params:    393,984
+Device:              CUDA
+```
+
+Training was performed using GPU acceleration.
+
+---
+
+# 📉 Actual Training Results
+
+The measured training losses were:
+
+| Epoch | Average Loss |
+| ----: | -----------: |
+|     1 |       8.0697 |
+|     2 |       7.7373 |
+|     3 |       7.5410 |
+
+The loss decreased during training:
+
+```text
+8.0697
+   ↓
+7.7373
+   ↓
+7.5410
+```
+
+This confirms that the training loop and optimization process were functioning.
+
+However:
+
+> **A decreasing training loss on four synthetic images does not demonstrate that the model learned medical image understanding.**
+
+---
+
+# 🧪 Inference Results
+
+The trained model was tested using the image → text generation pipeline.
+
+The model successfully generated text autoregressively.
+
+However, the generated text was not reliably related to the input image.
+
+For example, generated text contained unrelated general-domain language such as references to:
+
+```text
+"The U.S. Department of Justice..."
+```
+
+rather than reliable chest X-ray descriptions.
+
+---
+
+# 🔎 What This Result Means
+
+This is an important research finding.
+
+The pipeline works technically:
+
+```text
+Image
+  ↓
+CLIP
+  ↓
+Projection
+  ↓
+GPT-2
   ↓
 Text
 ```
 
-### Research Areas
+But the current experiment does **not** establish strong visual grounding.
 
-* Visual Tokens
-* Patch Embeddings
-* Vision-Language Alignment
-* Cross-Attention
-* Q-Former
-* Visual Instruction Tuning
-* Multimodal Fine-Tuning
-* Visual Grounding
-* Multimodal Reasoning
+The likely reasons include:
 
-### Current Project
+### 1. Extremely small dataset
 
-## 🏥 Medical X-Ray Report Generator
+Only four synthetic images were used.
+
+### 2. Synthetic images
+
+The images do not contain real radiographic structures.
+
+### 3. Frozen language model
+
+GPT-2 cannot significantly adapt to the visual representation because it remains frozen.
+
+### 4. Tiny trainable interface
+
+Only:
+
+```text
+393,984 parameters
+```
+
+are optimized.
+
+### 5. Weak image-text alignment
+
+A single linear projection is a very small interface between a vision encoder and a language model.
+
+### 6. GPT-2 language prior dominates
+
+Because GPT-2 is already a pretrained language model, it can generate fluent text without necessarily using the image representation correctly.
+
+---
+
+# 🧪 Research Interpretation
+
+The current result should therefore be described as:
+
+> **A working multimodal engineering proof-of-concept with unsuccessful visual grounding on a four-sample synthetic dataset.**
+
+It should **not** be described as:
+
+> ❌ A clinically accurate medical report generator
+
+or:
+
+> ❌ A validated medical AI system.
+
+The current project is a foundation for future experimentation.
+
+---
+
+# 💾 Model Checkpoint
+
+The trained model is saved using:
+
+```python
+torch.save(
+    model.state_dict(),
+    "minillava_model.pt"
+)
+```
+
+It can later be restored with:
+
+```python
+model = MiniLLaVA_Simple()
+
+model.load_state_dict(
+    torch.load("minillava_model.pt")
+)
+```
+
+---
+
+# 🚀 Installation
+
+## Requirements
+
+```bash
+pip install torch
+pip install transformers
+pip install pillow
+pip install tqdm
+```
+
+Or:
+
+```bash
+pip install torch transformers pillow tqdm
+```
+
+For Jupyter:
+
+```bash
+pip install jupyterlab
+```
+
+---
+
+# ▶️ Running the Project
+
+Start Jupyter:
+
+```bash
+jupyter lab
+```
+
+Then open the notebook and execute the cells in order.
+
+The pipeline is:
+
+```text
+1. Load CLIP
+        ↓
+2. Load GPT-2
+        ↓
+3. Freeze pretrained models
+        ↓
+4. Create projection layer
+        ↓
+5. Create dataset
+        ↓
+6. Train projection
+        ↓
+7. Save checkpoint
+        ↓
+8. Reload checkpoint
+        ↓
+9. Generate text
+```
+
+---
+
+# 🏗️ Project Structure
+
+A production-ready version of the project can evolve toward:
+
+```text
+medical-minillava/
+│
+├── README.md
+├── requirements.txt
+├── config.yaml
+│
+├── src/
+│   ├── models/
+│   │   ├── clip_encoder.py
+│   │   ├── projection.py
+│   │   ├── decoder.py
+│   │   └── minillava.py
+│   │
+│   ├── data/
+│   │   ├── dataset.py
+│   │   ├── preprocessing.py
+│   │   └── transforms.py
+│   │
+│   ├── training/
+│   │   ├── train.py
+│   │   ├── losses.py
+│   │   └── checkpoint.py
+│   │
+│   ├── evaluation/
+│   │   ├── metrics.py
+│   │   └── evaluation.py
+│   │
+│   └── inference/
+│       └── generate.py
+│
+├── notebooks/
+│   └── medical_minillava.ipynb
+│
+├── checkpoints/
+│
+├── tests/
+│
+└── demos/
+```
+
+The current notebook is the prototype implementation. The structure above is a **planned engineering evolution**, not a claim that all these files already exist.
+
+---
+
+# 🛣️ FUTURE DEVELOPMENT ROADMAP
+
+## Phase 1 — Real Medical Dataset
+
+Replace the synthetic dataset with a properly licensed/accessible medical image-report dataset.
+
+Potential research directions include:
 
 ```text
 Chest X-Ray
-     ↓
+    ↓
+Real Images
+    +
+Real Radiology Reports
+    ↓
+Paired Dataset
+```
+
+Candidate sources to investigate include:
+
+* CheXpert
+* IU X-Ray
+* MIMIC-CXR
+* Other appropriately licensed medical imaging datasets
+
+Dataset access, licensing, and usage restrictions must be checked before training or redistribution.
+
+---
+
+# Phase 2 — Proper Dataset Pipeline
+
+Implement:
+
+```text
+Dataset
+   ↓
+Train / Validation / Test
+   ↓
+Image preprocessing
+   ↓
+Text preprocessing
+   ↓
+Tokenization
+   ↓
+DataLoader
+```
+
+Target:
+
+```text
+Train
+Validation
+Test
+```
+
+instead of training on the complete dataset.
+
+---
+
+# Phase 3 — Improve the Multimodal Architecture
+
+Current:
+
+```text
 CLIP
-     ↓
-Projection Layer
-     ↓
+ ↓
+Single Linear Layer
+ ↓
+One Visual Token
+ ↓
 GPT-2
-     ↓
-Medical Text
 ```
 
-Current implementation demonstrates the complete multimodal pipeline and serves as a foundation for future training on real medical datasets.
+Future architecture:
+
+```text
+CLIP
+ ↓
+Multiple Visual Tokens
+ ↓
+Projection / Resampler
+ ↓
+Cross-Attention
+ ↓
+Language Model
+ ↓
+Medical Report
+```
+
+Potential experiments:
+
+* MLP projection
+* multi-layer projection
+* multiple visual tokens
+* Q-Former-style adapters
+* cross-attention
+* LoRA
+* partial decoder fine-tuning
+* modern instruction-tuned language models
+* multimodal instruction tuning
 
 ---
 
-# 🧩 Phase 5 — Reasoning & Planning
+# Phase 4 — Improve Training
 
-Move beyond simple generation.
+Future experiments should investigate:
 
-```text
-Observation
-     ↓
-State
-     ↓
-Reasoning
-     ↓
-Planning
-     ↓
-Action
-     ↓
-Observation
+### Better loss handling
+
+The current experiment uses:
+
+```python
+nn.CrossEntropyLoss()
 ```
 
-### Research Areas
+A production training pipeline should properly handle padding tokens using an appropriate ignored label.
 
-* Reasoning
-* Planning
-* Search
-* Memory
-* World Models
-* Reinforcement Learning
-* Model-Based RL
-* Tree Search
-* Tool Use
-* Self-Evaluation
+### Better token handling
+
+Use explicit:
+
+```text
+BOS
+EOS
+PAD
+```
+
+semantics rather than relying on GPT-2 defaults.
+
+### Better generation
+
+Experiment with:
+
+```text
+Greedy decoding
+Beam search
+Temperature
+Top-k
+Top-p
+Repetition penalty
+```
 
 ---
 
-# 🤖 Phase 6 — AI Agents
+# Phase 5 — Evaluation
 
-The next stage is building systems that can **use models as components inside an autonomous loop**.
+Future versions should evaluate both language quality and medical correctness.
 
-```text
-              ┌──────────────┐
-              │     Goal     │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │  Reasoning   │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │    Plan      │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │     Tool     │
-              │     Call     │
-              └──────┬───────┘
-                     ↓
-              ┌──────────────┐
-              │ Observation  │
-              └──────┬───────┘
-                     │
-                     └──────────► Repeat
-```
-
-### Agent Stack
+Possible metrics:
 
 ```text
-LLM
- ↓
-Tool Calling
- ↓
-Planning
- ↓
-Memory
- ↓
-RAG
- ↓
-Reasoning
- ↓
-Multi-Agent
- ↓
-Evaluation
- ↓
-Deployment
+BLEU
+ROUGE
+METEOR
+CIDEr
 ```
 
-### Agent Research
+alongside medical/clinical evaluation where appropriate.
 
-* Tool Calling
-* Function Calling
-* Planning
-* Short-Term Memory
-* Long-Term Memory
-* RAG
-* Agent State
-* Reflection
-* Evaluation
-* Multi-Agent Systems
-* Agent Environments
-* Autonomous Workflows
+The evaluation system should also include:
+
+```text
+Hallucination analysis
+Clinical concept accuracy
+Disease mention accuracy
+Negation accuracy
+Anatomical location accuracy
+Error analysis
+```
+
+Most importantly:
+
+> Text similarity alone is not enough to establish medical usefulness.
 
 ---
 
-# 🌍 Phase 7 — Production AI
+# Phase 6 — Experiment Tracking
 
-Research prototypes eventually need engineering infrastructure.
+Future experiments should record:
 
 ```text
-AI Model
+Model configuration
+Dataset version
+Training parameters
+GPU
+Training time
+Loss
+Validation metrics
+Checkpoints
+Git commit
+Random seed
+```
+
+Possible tools:
+
+```text
+MLflow
+Weights & Biases
+TensorBoard
+```
+
+---
+
+# Phase 7 — Demo
+
+A future demonstration interface:
+
+```text
+┌─────────────────────────────────────────┐
+│       Medical MiniLLaVA Demo            │
+├─────────────────────────────────────────┤
+│                                         │
+│       [ Upload Chest X-Ray ]            │
+│                                         │
+│               ↓                         │
+│                                         │
+│       Vision-Language Model             │
+│                                         │
+│               ↓                         │
+│                                         │
+│       Generated Report                  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+Possible stack:
+
+```text
+Model
+  ↓
+Python
+  ↓
+FastAPI
+  ↓
+REST API
+  ↓
+Web / Gradio Interface
+  ↓
+Docker
+```
+
+---
+
+# 🧠 AI ENGINEER ROADMAP
+
+The goal is not to relearn Python from zero.
+
+The focus is to transform existing Python/AI knowledge into **production AI engineering ability**.
+
+```text
+Python
    ↓
-API
+Git + Project Structure
    ↓
-Backend
+APIs + FastAPI
    ↓
-Database
+Databases
    ↓
-Authentication
+Testing
+   ↓
+Async Programming
    ↓
 Docker
    ↓
 Linux
    ↓
-Cloud
+Cloud / GPU
    ↓
-Monitoring
+PyTorch
    ↓
-Production
+LLM Engineering
+   ↓
+RAG
+   ↓
+Agents
+   ↓
+Multimodal AI
+   ↓
+MLOps / LLMOps
+   ↓
+Production AI Systems
 ```
 
-### Engineering Stack
+### Core AI Engineer projects
 
-* Python
-* FastAPI
-* REST APIs
-* PostgreSQL
-* Redis
-* Docker
-* Linux
-* Git
-* CI/CD
-* Cloud GPU
-* MLflow
-* Model evaluation
-* Observability
+Build:
+
+* AI REST API
+* RAG system
+* LLM application
+* multimodal application
+* agent with tools
+* evaluation pipeline
+* model serving API
+* Dockerized AI service
+* GPU inference service
+* production AI platform
 
 ---
 
-# 🧪 Projects
+# 🔬 AI RESEARCHER / AI RESEARCH ENGINEER ROADMAP
 
-## 🧠 LLM From Scratch
-
-A GPT-style language model implemented from fundamental Transformer components.
+The research path is different from simply building applications.
 
 ```text
-Tokenizer
+Mathematics
    ↓
-Embeddings
+Machine Learning
    ↓
-Self-Attention
+Deep Learning
    ↓
-Transformer Blocks
+Transformers
    ↓
-Language Head
+Computer Vision
    ↓
-Next Token Prediction
-```
-
-**Focus:**
-
-* Transformer architecture
-* Causal language modeling
-* Training
-* Validation
-* Text generation
-* Reasoning experiments
-
----
-
-## 👁️ Multimodal AI
-
-Experiments combining visual and textual representations.
-
-**Focus:**
-
-* CLIP
-* Vision encoders
-* Language models
-* Multimodal embeddings
-* Cross-modal representation learning
-
----
-
-## 🏥 Medical AI
-
-Vision-language experiments for medical imaging.
-
-```text
-X-Ray
- ↓
-Vision Encoder
- ↓
-Multimodal Alignment
- ↓
-Language Model
- ↓
-Report Generation
-```
-
----
-
-## 🧠 ARIA
-
-### Adaptive Reasoning & Imagination Agent
-
-A research prototype exploring:
-
-```text
-Vision
-+
-State Representation
-+
-Memory
-+
-World Model
-+
+Multimodal Learning
+   ↓
+LLMs
+   ↓
+Reasoning
+   ↓
 Planning
-+
+   ↓
+Agents
+   ↓
+World Models
+   ↓
 Reinforcement Learning
+   ↓
+Research Reproduction
+   ↓
+Novel Experiments
+   ↓
+Ablation Studies
+   ↓
+Research Reports / Papers
 ```
 
-ARIA is a research prototype and **not a claim of general AGI**.
+### Research workflow
+
+Every research project should follow:
+
+```text
+Problem
+  ↓
+Hypothesis
+  ↓
+Baseline
+  ↓
+Architecture
+  ↓
+Experiment
+  ↓
+Evaluation
+  ↓
+Ablation
+  ↓
+Error Analysis
+  ↓
+Conclusion
+  ↓
+Reproducible Code
+```
+
+The objective is not simply:
+
+> "I built an AI model."
+
+The stronger research question is:
+
+> "What did I test, why did I test it, what changed, and what evidence supports the conclusion?"
 
 ---
 
-## 🧩 ARC Research
+# 💻 SOFTWARE ENGINEERING ROADMAP FOR AI
 
-Experiments investigating how AI systems can solve novel abstract reasoning problems.
+Software engineering is treated here as the infrastructure needed to build reliable AI systems.
 
-Focus areas:
+```text
+Python
+ ↓
+Git
+ ↓
+Clean Architecture
+ ↓
+Typing
+ ↓
+Testing
+ ↓
+Logging
+ ↓
+Configuration
+ ↓
+REST APIs
+ ↓
+FastAPI
+ ↓
+SQL / Databases
+ ↓
+Async
+ ↓
+Docker
+ ↓
+Linux
+ ↓
+CI/CD
+ ↓
+Cloud
+ ↓
+Monitoring
+```
 
-* Abstract reasoning
-* Pattern discovery
-* Program synthesis
-* Search
-* Generalization
-* Test-time adaptation
+The goal is:
+
+```text
+Research Prototype
+       ↓
+Reliable Software
+       ↓
+Production AI System
+```
 
 ---
 
-# 🛠️ AI Tools
+# 📚 LEARN — AI / ML
 
-The long-term goal is to build a collection of reusable AI engineering tools.
+## Python
 
-```text
-                    AI TOOLBOX
-                        │
-        ┌───────────────┼────────────────┐
-        │               │                │
-        ▼               ▼                ▼
-      LLMs             VLMs            Agents
-        │               │                │
-        ▼               ▼                ▼
-   Training Tools   Vision Tools    Agent Tools
-        │               │                │
-        └───────────────┼────────────────┘
-                        ▼
-                  Developer Tools
-```
+Official Python downloads:
 
-### Planned Tools
-
-| Tool                 | Purpose                            | Status |
-| -------------------- | ---------------------------------- | ------ |
-| LLM Training Toolkit | Train/evaluate small LLMs          | 🔄     |
-| Transformer Toolkit  | Educational Transformer components | 🔄     |
-| VLM Toolkit          | Vision-language experiments        | 🔄     |
-| Dataset Tools        | Prepare AI datasets                | 🔄     |
-| Evaluation Toolkit   | Evaluate models                    | 🔜     |
-| Agent Toolkit        | Build agent workflows              | 🔜     |
-| RAG Toolkit          | Retrieval pipelines                | 🔜     |
-| Memory Toolkit       | Agent memory                       | 🔜     |
-| Multimodal Toolkit   | Vision + language systems          | 🔜     |
-| Deployment Toolkit   | Deploy AI systems                  | 🔜     |
+https://www.python.org/downloads/
 
 ---
 
-# 🌐 AI Research Website
+## PyTorch
 
-The portfolio will eventually have a central website connecting the entire ecosystem.
+Use PyTorch for:
+
+* neural networks
+* training
+* GPU computation
+* computer vision
+* transformers
+* research experimentation
+
+Official installation:
+
+https://pytorch.org/get-started/locally/
+
+Official tutorials:
+
+https://docs.pytorch.org/tutorials/
+
+---
+
+## Hugging Face
+
+Useful for:
+
+* Transformers
+* pretrained models
+* datasets
+* tokenizers
+* multimodal models
+* model sharing
+
+Hugging Face Learn:
+
+https://huggingface.co/learn
+
+Recommended areas:
 
 ```text
-                    AI LAB WEBSITE
-                          │
-        ┌─────────────────┼─────────────────┐
-        │                 │                 │
-        ▼                 ▼                 ▼
-     Research          Projects           Tools
-        │                 │                 │
-        ▼                 ▼                 ▼
-      Papers            Demos           Downloads
-        │                 │                 │
-        └─────────────────┼─────────────────┘
-                          ▼
-                       Models
-                          │
-                          ▼
-                       Datasets
+LLMs
+Computer Vision
+Agents
+Deep RL
+Robotics
+3D ML
 ```
 
-### Website Sections
+---
+
+# 📊 DATASETS
+
+## Hugging Face Datasets
+
+Use for discovering and working with machine-learning datasets:
+
+https://huggingface.co/docs/datasets
+
+---
+
+## Kaggle
+
+Useful for:
 
 ```text
-HOME
+Datasets
+Competitions
+Notebooks
+GPU experiments
+Machine learning projects
+```
+
+https://www.kaggle.com/
+
+---
+
+# 🧪 NOTEBOOK DEVELOPMENT
+
+## Jupyter
+
+Useful for:
+
+* experiments
+* research notebooks
+* visualization
+* model testing
+* reproducible experiments
+
+Official installation:
+
+https://jupyter.org/install
+
+---
+
+# 🖥️ DEVELOPMENT ENVIRONMENT
+
+## Visual Studio Code
+
+Primary editor for:
+
+```text
+Python
+PyTorch
+FastAPI
+Git
+Docker
+AI projects
+```
+
+Download:
+
+https://code.visualstudio.com/download
+
+---
+
+# ⚡ GPU / CUDA
+
+CUDA enables GPU-accelerated workloads for NVIDIA hardware.
+
+Official CUDA Toolkit:
+
+https://developer.nvidia.com/cuda/toolkit
+
+Use it for:
+
+```text
+PyTorch GPU training
+LLM inference
+Computer vision
+CUDA programming
+GPU optimization
+```
+
+---
+
+# 🚀 BACKEND
+
+## FastAPI
+
+FastAPI is useful for turning trained AI models into APIs.
+
+Typical architecture:
+
+```text
+Client
+  ↓
+FastAPI
+  ↓
+Model Service
+  ↓
+PyTorch / Transformers
+  ↓
+Prediction
+```
+
+Official tutorial:
+
+https://fastapi.tiangolo.com/tutorial/
+
+---
+
+# 🐳 DEPLOYMENT
+
+## Docker
+
+Use Docker to package:
+
+```text
+Python
+Dependencies
+AI Model
+API
+Runtime
+```
+
+Architecture:
+
+```text
+AI Application
+      ↓
+Docker Image
+      ↓
+Container
+      ↓
+Server / Cloud
+```
+
+Official Docker documentation:
+
+https://docs.docker.com/get-started/
+
+---
+
+# 🌐 FUTURE AI LAB WEBSITE
+
+The long-term goal is to build an AI research and engineering laboratory website.
+
+Possible structure:
+
+```text
+AI LAB
+│
+├── Home
 │
 ├── Research
-│
-├── LLMs
-│
-├── VLMs
-│
-├── Multimodal
-│
-├── Agents
+│   ├── Multimodal AI
+│   ├── LLMs
+│   ├── Computer Vision
+│   ├── Agents
+│   ├── Reasoning
+│   ├── World Models
+│   └── Embodied AI
 │
 ├── Projects
-│
-├── AI Tools
 │
 ├── Models
 │
 ├── Datasets
 │
+├── Experiments
+│
 ├── Demos
+│
+├── Tools
+│
+├── Downloads
 │
 ├── Documentation
 │
-└── Downloads
-```
-
-The website can be hosted with GitHub Pages, which supports project sites directly from GitHub repositories and can use GitHub Actions for automated deployment.
-
----
-
-# 📦 AI Tools & Downloads
-
-The website will provide a central download area for open-source work.
-
-### Downloads
-
-```text
-┌────────────────────────────────────────────┐
-│              AI TOOLBOX                    │
-├────────────────────────────────────────────┤
-│                                            │
-│  🧠 LLM Toolkit                            │
-│  Build and train small language models     │
-│                                            │
-│  👁️ VLM Toolkit                            │
-│  Vision-language experimentation           │
-│                                            │
-│  🤖 Agent Toolkit                           │
-│  Build tool-using AI agents                │
-│                                            │
-│  📊 Evaluation Toolkit                     │
-│  Evaluate AI systems                       │
-│                                            │
-│  🗂️ Dataset Toolkit                        │
-│  Prepare datasets for training             │
-│                                            │
-└────────────────────────────────────────────┘
-```
-
-Each tool will eventually include:
-
-```text
-Source Code
-Documentation
-Installation
-Examples
-Model Weights
-Configuration
-Benchmarks
-License
-Release History
+└── Learning
 ```
 
 ---
 
-# 🚀 Demos
+# 🛠️ AI LAB TOOL CENTER
 
-Interactive AI demonstrations will be provided where practical.
+The future website can contain a centralized tool directory:
 
-Examples:
+| Category      | Resources             |
+| ------------- | --------------------- |
+| Programming   | Python, Git           |
+| IDE           | VS Code               |
+| Deep Learning | PyTorch               |
+| Transformers  | Hugging Face          |
+| Datasets      | Kaggle, HF Datasets   |
+| Notebooks     | Jupyter               |
+| Backend       | FastAPI               |
+| Containers    | Docker                |
+| GPU           | CUDA                  |
+| Research      | Papers, Repositories  |
+| Deployment    | Cloud / GPU platforms |
 
-```text
-LLM Playground
-      ↓
-VLM Playground
-      ↓
-Medical AI Demo
-      ↓
-Agent Playground
-      ↓
-Multimodal Playground
-```
-
-For ML demos, Hugging Face Spaces is one deployment option because Spaces supports ML applications and provides Git-based workflows, including Gradio, Docker, and static applications.
-
----
-
-# 📚 Research Documentation
-
-Each major project will document:
-
-```text
-Problem
- ↓
-Research Question
- ↓
-Architecture
- ↓
-Implementation
- ↓
-Dataset
- ↓
-Training
- ↓
-Experiments
- ↓
-Evaluation
- ↓
-Failure Analysis
- ↓
-Future Work
-```
-
-The goal is to make the repository useful not only as a portfolio but also as a **technical research notebook**.
+The goal is to make the website useful not only as a portfolio, but also as a **learning and engineering resource hub**.
 
 ---
 
-# 🗺️ Long-Term Roadmap
+# 🧰 PROJECT DEVELOPMENT STANDARD
+
+Future AI projects should follow a consistent structure:
 
 ```text
-2026
- │
- ├── LLMs
- │    ├── Transformer From Scratch
- │    ├── GPT From Scratch
- │    └── LLM Training
- │
- ├── Computer Vision
- │    ├── CNN
- │    ├── ViT
- │    └── CLIP
- │
- └── Multimodal
-      └── VLM Prototype
-            │
-            ▼
-2027
- │
- ├── Strong VLMs
- │
- ├── Multimodal Reasoning
- │
- ├── AI Agents
- │
- ├── Memory
- │
- ├── Planning
- │
- ├── Tool Use
- │
- └── Multi-Agent Systems
-      │
-      ▼
-2027+
- │
- ├── Advanced Reasoning
- ├── World Models
- ├── Embodied AI
- ├── Autonomous Agents
- ├── Production AI
- └── Open AI Tools
+01 — Problem
+      ↓
+02 — Research
+      ↓
+03 — Dataset
+      ↓
+04 — Baseline
+      ↓
+05 — Architecture
+      ↓
+06 — Training
+      ↓
+07 — Evaluation
+      ↓
+08 — Error Analysis
+      ↓
+09 — Improvement
+      ↓
+10 — Deployment
+      ↓
+11 — Documentation
+      ↓
+12 — Release
 ```
 
-The dates are development targets rather than guarantees; the sequence is the important part.
+Every project should clearly state:
+
+```text
+What exists
+What was tested
+What worked
+What failed
+What was measured
+What remains
+```
+
+---
+
+# 📌 Current Project Status
+
+## Medical MiniLLaVA
+
+| Area                    | Status             |
+| ----------------------- | ------------------ |
+| CLIP integration        | ✅ Complete         |
+| GPT-2 integration       | ✅ Complete         |
+| Image encoder           | ✅ Complete         |
+| Projection layer        | ✅ Complete         |
+| Visual token            | ✅ Complete         |
+| Training loop           | ✅ Complete         |
+| CUDA training           | ✅ Complete         |
+| Checkpoint saving       | ✅ Complete         |
+| Inference               | ✅ Complete         |
+| Synthetic dataset       | ✅ Complete         |
+| Real medical dataset    | 🚧 Planned         |
+| Proper validation       | 🚧 Planned         |
+| Medical evaluation      | 🚧 Planned         |
+| Strong visual grounding | ❌ Not achieved yet |
+| Production deployment   | 🚧 Planned         |
+| Clinical validation     | 🚧 Future research |
 
 ---
 
 # 🔬 Research Direction
 
-The central research direction is:
+The long-term research direction is:
 
 ```text
-How can AI systems perceive,
-represent, reason, plan,
-use tools, learn from feedback,
-and act in complex environments?
+Small Multimodal Prototype
+          ↓
+Real Vision-Language Dataset
+          ↓
+Better Visual Tokenization
+          ↓
+Cross-Attention
+          ↓
+Efficient Fine-Tuning
+          ↓
+Medical VLM
+          ↓
+Evaluation
+          ↓
+Reliable Multimodal AI
 ```
 
-This leads toward:
+The same principles can then be extended beyond medical imaging to:
 
 ```text
+Computer Vision
+      ↓
+Multimodal AI
+      ↓
 LLMs
- ↓
-VLMs
- ↓
-Multimodal Models
- ↓
-Reasoning
- ↓
-Planning
- ↓
-Memory
- ↓
+      ↓
 Agents
- ↓
+      ↓
+Reasoning
+      ↓
+Planning
+      ↓
 World Models
- ↓
+      ↓
 Embodied AI
 ```
 
 ---
 
-# 🏗️ AI System Architecture
+# ⚠️ Medical Safety
 
-The long-term architecture I am working toward is:
+This repository is a **research and engineering prototype**.
+
+It is not:
+
+* a medical device
+* a diagnostic system
+* a clinical decision-support system
+* a replacement for a radiologist
+* clinically validated
+
+Generated text must not be used to make medical decisions.
+
+Future clinical experimentation would require appropriate datasets, evaluation methodology, expert review, privacy safeguards, and regulatory considerations.
+
+---
+
+# 🎯 Long-Term Vision
+
+The goal of this project is not simply to create another chatbot.
+
+The broader objective is to build increasingly capable AI systems that combine:
 
 ```text
-                 ┌───────────────────┐
-                 │       USER        │
-                 └─────────┬─────────┘
-                           │
-                           ▼
-                 ┌───────────────────┐
-                 │      AGENT        │
-                 │   Orchestrator    │
-                 └─────────┬─────────┘
-                           │
-             ┌─────────────┼─────────────┐
-             │             │             │
-             ▼             ▼             ▼
-          Reasoning      Memory        Planning
-             │             │             │
-             └─────────────┼─────────────┘
-                           ▼
-                    ┌──────────────┐
-                    │    Models    │
-                    ├──────────────┤
-                    │     LLM      │
-                    │     VLM      │
-                    │ Multimodal   │
-                    └──────┬───────┘
-                           │
-                           ▼
-                     ┌───────────┐
-                     │   Tools   │
-                     ├───────────┤
-                     │ Search    │
-                     │ Code      │
-                     │ Database  │
-                     │ APIs      │
-                     │ Files     │
-                     └─────┬─────┘
-                           │
-                           ▼
-                      Environment
+Vision
+  +
+Language
+  +
+Memory
+  +
+Reasoning
+  +
+Planning
+  +
+Tools
+  +
+Learning
 ```
 
----
-
-# 📈 Engineering Principles
-
-### Build
-
-Don't only call a model.
-
-Understand the architecture.
-
-### Measure
-
-Don't assume that fluent output means intelligence.
-
-Evaluate it.
-
-### Experiment
-
-Compare architectures and document failures.
-
-### Ship
-
-Turn successful research prototypes into usable tools.
-
-### Open
-
-Publish code, experiments, documentation, and reproducible results whenever possible.
-
----
-
-# 🔗 Ecosystem
-
-### Code
-
-GitHub repositories contain the implementations, experiments, and research projects.
-
-### Models
-
-Model checkpoints and trained artifacts can be published through appropriate model repositories.
-
-### Datasets
-
-Dataset configurations and preprocessing tools will be documented separately.
-
-### Demos
-
-Interactive applications will be deployed through the project website and ML demo platforms.
-
-### Tools
-
-Reusable AI engineering tools will eventually be collected into a central AI toolbox.
-
----
-
-# 📌 Current Status
-
-| Area                | Status       |
-| ------------------- | ------------ |
-| Python / PyTorch    | 🟢 Active    |
-| LLMs                | 🟢 Active    |
-| Transformers        | 🟢 Active    |
-| Computer Vision     | 🟢 Active    |
-| Multimodal AI       | 🟢 Active    |
-| VLMs                | 🟢 Active    |
-| Medical AI          | 🟢 Active    |
-| Reasoning           | 🟡 Research  |
-| Planning            | 🟡 Research  |
-| AI Agents           | 🟡 Building  |
-| Multi-Agent Systems | 🔵 Planned   |
-| AI Tooling          | 🔵 Planned   |
-| AI Website          | 🔵 Planned   |
-| Production AI       | 🔵 Planned   |
-| Embodied AI         | 🔵 Long-Term |
-
----
-
-# 🧰 Current Core Stack
+Ultimately:
 
 ```text
-Python
-PyTorch
-Transformers
-Hugging Face
-NumPy
-Pandas
-CUDA
-FastAPI
-Docker
-Git
-Linux
+AI Research
+      +
+AI Engineering
+      +
+Open Source
+      +
+Reproducible Experiments
+      ↓
+AI Research & Engineering Lab
 ```
 
 ---
 
 # 👨‍💻 Author
 
-## Salva Piol
+**Salva Piol**
 
-**AI Engineer · AI Research · Multimodal Systems**
+AI Engineer / AI Research Engineer
 
-### Focus
+Focus:
 
 ```text
+Python
+PyTorch
+Deep Learning
+Transformers
 LLMs
 Computer Vision
-Transformers
 Multimodal AI
-Vision-Language Models
-Medical AI
-AI Agents
+3D Vision
 Reasoning
 Planning
+AI Agents
 World Models
-Embodied AI
 ```
 
 ---
 
-# ⭐ Vision
+# ⭐ Repository Philosophy
 
-The long-term goal is to build an open collection of:
+> **Build it. Measure it. Document it. Improve it.**
+
+Not:
 
 ```text
-        MODELS
-          +
-        TOOLS
-          +
-       RESEARCH
-          +
-        DEMOS
-          +
-     DOCUMENTATION
+"I plan to build an AI system."
 ```
 
-forming a single AI engineering ecosystem where people can:
+But:
 
-**learn → experiment → download → run → modify → build.**
+```text
+"I implemented it.
+I tested it.
+Here is what happened.
+Here is what failed.
+Here is the evidence.
+Here is what I will improve next."
+```
+
+That is the standard this repository follows.
 
 ---
 
-## ⚠️ Research Disclaimer
+## 🔗 Core Resources
 
-The projects in this repository are research and engineering experiments.
+* Python — https://www.python.org/
+* PyTorch — https://pytorch.org/
+* Hugging Face — https://huggingface.co/
+* Hugging Face Learn — https://huggingface.co/learn
+* Kaggle — https://www.kaggle.com/
+* Jupyter — https://jupyter.org/
+* VS Code — https://code.visualstudio.com/
+* FastAPI — https://fastapi.tiangolo.com/
+* Docker — https://www.docker.com/
+* NVIDIA CUDA — https://developer.nvidia.com/cuda
+* GitHub — https://github.com/
 
-Individual models may be incomplete, experimental, or unsuitable for production use.
+---
 
-Medical AI projects are not clinically validated and must not be used for diagnosis or medical decision-making.
+**Status:** 🧪 Research Prototype
+**Domain:** Multimodal AI / Vision-Language Models / Medical AI
+**Framework:** PyTorch + Hugging Face Transformers
+**Current Dataset:** Synthetic 4-sample prototype
+**Current Result:** End-to-end generation pipeline implemented; reliable visual grounding not yet achieved
+**Next Milestone:** Real paired medical image-report dataset + proper evaluation

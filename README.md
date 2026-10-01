@@ -1,77 +1,107 @@
 # 🏥 Medical X-Ray Report Generator
 
-### Vision-Language Model for Chest X-Ray Caption Generation
+### A Vision-Language Model for Chest X-Ray Image-to-Text Generation
 
-A research prototype that connects **computer vision and language modeling** to generate text descriptions from chest X-ray images.
+<p align="center">
 
-The system uses a pretrained **CLIP vision encoder**, a trainable **projection layer**, and a pretrained **GPT-2 language model** to create a lightweight multimodal architecture inspired by the design principles behind models such as LLaVA.
+**CLIP → Vision-Language Projection → GPT-2**
 
-> ⚠️ **Research Prototype — Not a Clinical Diagnostic System**
-> This project is intended for research and educational purposes. It has not been clinically validated and must not be used for medical diagnosis or patient-care decisions.
+</p>
+
+<p align="center">
+
+<a href="https://github.com/SalvaPiol45Tech">
+<img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github">
+</a>
+
+<a href="https://salvapiol45tech.github.io/medical-xray-report-generator/">
+<img src="https://img.shields.io/badge/Project-Website-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white">
+</a>
+
+<a href="#-roadmap">
+<img src="https://img.shields.io/badge/Roadmap-View-6C63FF?style=for-the-badge">
+</a>
+
+</p>
 
 ---
 
-## 🧠 Overview
+## 🔬 Overview
 
-Medical imaging contains complex visual information that can be difficult to translate into natural-language reports.
+**Medical X-Ray Report Generator** is a multimodal AI research project exploring how a vision encoder and a language model can be connected to generate natural-language descriptions from chest X-ray images.
 
-This project explores a simple Vision-Language architecture:
+The current architecture combines:
 
 ```text
-             Chest X-Ray
-                  │
-                  ▼
-        ┌──────────────────┐
-        │   CLIP Vision    │
-        │     Encoder      │
-        └────────┬─────────┘
-                 │
-            512-d features
-                 │
-                 ▼
-        ┌──────────────────┐
-        │    Projection    │
-        │      Layer       │
-        └────────┬─────────┘
-                 │
-            768-d features
-                 │
-                 ▼
-        ┌──────────────────┐
-        │      GPT-2       │
-        │  Language Model  │
-        └────────┬─────────┘
-                 │
-                 ▼
-        Generated Caption
+┌──────────────────────┐
+│      Chest X-Ray     │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│    CLIP ViT-B/32    │
+│   Vision Encoder     │
+│      Frozen ❄️       │
+└──────────┬───────────┘
+           │
+        512-D
+           │
+           ▼
+┌──────────────────────┐
+│ Vision-Language      │
+│    Projection        │
+│    Trainable 🔥      │
+└──────────┬───────────┘
+           │
+        768-D
+           │
+           ▼
+┌──────────────────────┐
+│        GPT-2         │
+│   Language Decoder   │
+│      Frozen ❄️       │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  Autoregressive Text │
+│      Generation      │
+└──────────────────────┘
 ```
 
-The key idea is to transform visual features into the same embedding space used by GPT-2 and provide the projected image representation as a **visual token** before the text sequence.
+The project focuses on the **engineering and research problem of multimodal alignment** rather than claiming clinical diagnostic capability.
+
+> ⚠️ **This is a research prototype. It is not clinically validated and must not be used for diagnosis or patient-care decisions.**
 
 ---
 
-# 🚀 Features
+# 🎯 Project Goal
 
-* 🖼️ Image-to-text generation
-* 👁️ CLIP-based visual representation
-* 🧠 GPT-2 language generation
-* 🔗 Trainable vision-language projection
-* ❄️ Frozen pretrained CLIP encoder
-* ❄️ Frozen pretrained GPT-2
-* ⚡ GPU acceleration with CUDA
-* 📦 PyTorch implementation
-* 🧪 Custom PyTorch Dataset and DataLoader
-* 🔄 Autoregressive token generation
-* 💾 Model checkpoint saving/loading
-* 🏗️ Lightweight multimodal architecture
+The long-term goal is to investigate whether a relatively lightweight vision-language architecture can learn to transform chest X-ray visual representations into medically meaningful language.
+
+The research direction is:
+
+```text
+Image
+  ↓
+Visual Representation
+  ↓
+Multimodal Alignment
+  ↓
+Language Representation
+  ↓
+Medical Language Generation
+  ↓
+Clinical Evaluation
+```
+
+The current implementation represents the **first experimental stage** of this roadmap.
 
 ---
 
-# 🏗️ Architecture
+# 🧠 Core Architecture
 
-The model consists of three major components.
-
-## 1. CLIP Vision Encoder
+## Vision Encoder
 
 The project uses:
 
@@ -79,112 +109,134 @@ The project uses:
 openai/clip-vit-base-patch32
 ```
 
-CLIP converts the input image into a dense visual representation.
+CLIP converts the input image into a compact visual representation.
 
-```python
-image_features = CLIP(image)
+```text
+Chest X-Ray
+     ↓
+CLIP Vision Transformer
+     ↓
+Visual Features
+     ↓
+512 dimensions
 ```
 
-The resulting representation is passed to the projection network.
+The CLIP model is frozen during the current experiment.
 
 ---
 
-## 2. Vision-Language Projection
+## 🔗 Vision-Language Connector
 
-The projection layer maps the CLIP representation into GPT-2's embedding dimension.
+The visual representation cannot be passed directly into GPT-2 because the dimensionalities differ.
+
+The project therefore introduces a trainable projection:
 
 ```text
-CLIP
-512 dimensions
-      │
-      ▼
+512
+ ↓
 Linear Projection
-      │
-      ▼
-GPT-2
-768 dimensions
+ ↓
+768
 ```
 
 Implementation:
 
 ```python
 class SimpleProjection(nn.Module):
+
     def __init__(self):
         super().__init__()
-        self.linear = nn.Linear(512, 768)
+
+        self.linear = nn.Linear(
+            512,
+            768
+        )
 
     def forward(self, x):
         return self.linear(x)
 ```
 
-Only this component is trained in the current experiment.
-
-### Trainable Parameters
+This connector contains:
 
 ```text
-393,984
+393,984 trainable parameters
 ```
 
-CLIP and GPT-2 remain frozen.
+Only this component is optimized in the current experiment.
 
 ---
 
-## 3. GPT-2 Language Decoder
+# 🤖 Language Model
 
-The language component uses:
-
-```text
-gpt2
-```
-
-The projected image representation is inserted as a visual token:
+The language decoder uses:
 
 ```text
-[VISUAL TOKEN] [TEXT TOKENS]
+GPT-2
 ```
 
-These embeddings are passed into GPT-2 through:
+The projected visual representation becomes a visual token:
 
-```python
-inputs_embeds=combined
+```text
+[VISUAL TOKEN]
 ```
+
+which is concatenated with the text embeddings:
+
+```text
+[VISUAL TOKEN] [TOKEN] [TOKEN] [TOKEN] ...
+```
+
+The resulting sequence is passed to GPT-2 through `inputs_embeds`.
 
 GPT-2 then predicts the next token autoregressively.
 
 ---
 
-# 🔬 Training Strategy
-
-The current prototype uses parameter-efficient multimodal alignment.
-
-Instead of fine-tuning billions of parameters, the experiment freezes the pretrained models:
+# 🔄 Complete Inference Pipeline
 
 ```text
-CLIP          → Frozen ❄️
-GPT-2         → Frozen ❄️
-Projection    → Trainable 🔥
-```
-
-This significantly reduces the number of parameters that need to be optimized.
-
-### Optimization
-
-```text
-Optimizer: Adam
-Learning Rate: 1e-4
-Epochs: 3
-Batch Size: 2
-Trainable Parameters: 393,984
-Device: CUDA
+             INPUT IMAGE
+                  │
+                  ▼
+          Image Preprocessing
+                  │
+                  ▼
+             CLIP Encoder
+                  │
+                  ▼
+          512-D Image Features
+                  │
+                  ▼
+        Trainable Projection
+                  │
+                  ▼
+          768-D Visual Token
+                  │
+                  ▼
+        ┌─────────────────┐
+        │   GPT-2 Decoder │
+        └────────┬────────┘
+                 │
+                 ▼
+             Next Token
+                 │
+                 ▼
+             Next Token
+                 │
+                 ▼
+                 ...
+                 │
+                 ▼
+        Generated Description
 ```
 
 ---
 
 # 🧪 Current Experiment
 
-The initial experiment uses a **small synthetic dataset** containing four dummy images and example captions.
+The first experiment uses a deliberately small synthetic dataset to validate the complete multimodal pipeline.
 
-Example captions:
+The dataset contains four synthetic image-caption pairs:
 
 ```text
 Normal chest X-ray with clear lungs
@@ -196,29 +248,28 @@ Mild pleural effusion on right side
 Clear bilateral lungs without disease
 ```
 
-The purpose of this experiment was to verify the complete multimodal pipeline:
+The images are synthetic placeholders rather than real patient X-rays.
 
-```text
-Image
-  ↓
-CLIP
-  ↓
-Projection
-  ↓
-Visual Token
-  ↓
-GPT-2
-  ↓
-Autoregressive Generation
-```
+The purpose of this stage is to verify:
 
-It is **not sufficient for medical performance evaluation**.
+* image preprocessing
+* CLIP encoding
+* feature projection
+* multimodal embedding construction
+* GPT-2 forward pass
+* loss computation
+* backpropagation
+* optimization
+* autoregressive generation
+* checkpoint saving/loading
 
 ---
 
-# 📊 Training Results
+# 📊 Current Results
 
-The prototype successfully completed three training epochs.
+The model successfully completed the complete training and inference pipeline.
+
+### Training
 
 | Epoch | Average Loss |
 | ----: | -----------: |
@@ -226,79 +277,350 @@ The prototype successfully completed three training epochs.
 |     2 |       7.7373 |
 |     3 |       7.5410 |
 
-The decreasing loss confirms that the trainable projection layer was being optimized during the experiment.
+```text
+Training Loss
 
-However, these results should **not** be interpreted as evidence of medical understanding or clinical accuracy.
+8.0697  ────────┐
+                │
+7.7373  ────────┤ ↓
+                │
+7.5410  ────────┘
+```
+
+### Model
+
+| Property             | Value             |
+| -------------------- | ----------------- |
+| Vision Encoder       | CLIP ViT-B/32     |
+| Language Model       | GPT-2             |
+| Connector            | Linear Projection |
+| Trainable Parameters | 393,984           |
+| CLIP                 | Frozen            |
+| GPT-2                | Frozen            |
+| Optimizer            | Adam              |
+| Learning Rate        | `1e-4`            |
+| Epochs               | 3                 |
+| Batch Size           | 2                 |
+| Sequence Length      | 50                |
+| Device               | CUDA              |
 
 ---
 
-# ⚠️ Important Experimental Limitation
+# ⚠️ An Important Result
 
-The current training data is intentionally tiny and synthetic.
+The prototype generated fluent text, but the generated text was not reliably grounded in the input image.
 
-Only four dummy images were used.
+For example, the model produced unrelated general-domain text for different synthetic images.
 
-Therefore:
-
-* ❌ No medical diagnostic accuracy can be established
-* ❌ No clinical conclusions can be drawn
-* ❌ The generated reports are not medically reliable
-* ❌ The experiment does not represent real-world X-ray performance
-* ❌ The model has not been clinically validated
-
-The experiment demonstrates the **engineering pipeline**, not a production medical AI system.
-
----
-
-# 🤖 Inference
-
-After training, the model can generate text autoregressively.
-
-The generation process is:
+This exposes an important limitation of the current architecture:
 
 ```text
-Input X-Ray
-    │
-    ▼
-CLIP Image Features
-    │
-    ▼
-Projection Layer
-    │
-    ▼
-Visual Token
-    │
-    ▼
-GPT-2
-    │
-    ▼
-Next Token
-    │
-    ▼
-Next Token
-    │
-    ▼
-...
-    │
-    ▼
-Generated Caption
+Fluent Language
+       ≠
+Visual Grounding
 ```
 
-Example:
+A language model can produce grammatically coherent text without correctly interpreting the image.
 
-```python
-caption = generate_caption(
-    model,
-    image,
-    max_tokens=40
-)
+Therefore, the current experiment demonstrates:
+
+> **A functioning multimodal training and inference pipeline**
+
+but does **not** demonstrate:
+
+> **Reliable medical image understanding.**
+
+This distinction is central to the next stages of the project.
+
+---
+
+# 🚧 Current Limitations
+
+### Dataset
+
+The current dataset contains only four synthetic examples.
+
+### Visual Representation
+
+The image is represented using a single projected visual token.
+
+### Language Model
+
+GPT-2 remains frozen and has not been medically adapted.
+
+### Vision Encoder
+
+CLIP remains frozen and was not specifically optimized for chest radiography.
+
+### Medical Grounding
+
+The model has not demonstrated reliable medical image grounding.
+
+### Evaluation
+
+No clinical evaluation has been performed.
+
+### Safety
+
+The generated text may contain hallucinations or medically incorrect statements.
+
+---
+
+# 🛣️ Roadmap
+
+The project is being developed in stages.
+
+## Phase 01 — Multimodal Prototype ✅
+
+```text
+CLIP
+  ↓
+Projection
+  ↓
+GPT-2
+```
+
+* [x] CLIP integration
+* [x] GPT-2 integration
+* [x] Vision-language projection
+* [x] Frozen backbone training
+* [x] Custom Dataset
+* [x] DataLoader
+* [x] Training loop
+* [x] Autoregressive inference
+* [x] CUDA execution
+* [x] Checkpoint saving
+
+---
+
+## Phase 02 — Real Chest X-Ray Data 🔄
+
+Move from synthetic images to real medical datasets.
+
+### Planned datasets
+
+* CheXpert
+* MIMIC-CXR
+* IU X-Ray
+
+### Tasks
+
+* [ ] Dataset downloader
+* [ ] Metadata parser
+* [ ] Image/report matching
+* [ ] Train/validation/test split
+* [ ] Medical report preprocessing
+* [ ] Data quality checks
+* [ ] Dataset caching
+* [ ] Reproducible preprocessing pipeline
+
+---
+
+## Phase 03 — Better Visual Grounding 🔜
+
+The current single-token representation is too restrictive.
+
+The next architecture will investigate:
+
+```text
+Image
+  ↓
+Vision Transformer
+  ↓
+Patch Features
+  ↓
+Multiple Visual Tokens
+  ↓
+Multimodal Connector
+  ↓
+Language Model
+```
+
+Planned experiments:
+
+* [ ] Patch-level visual features
+* [ ] Multiple visual tokens
+* [ ] MLP projection
+* [ ] Cross-attention
+* [ ] Q-Former-style connector
+* [ ] Vision encoder comparison
+* [ ] Visual grounding analysis
+
+---
+
+## Phase 04 — Medical Language Adaptation 🔜
+
+Adapt the language generation component to the structure and terminology of radiology reports.
+
+Planned work:
+
+* [ ] Medical vocabulary analysis
+* [ ] Radiology report formatting
+* [ ] Findings generation
+* [ ] Impression generation
+* [ ] LoRA/PEFT experiments
+* [ ] Medical-domain adaptation
+* [ ] Structured report generation
+
+Target format:
+
+```text
+FINDINGS:
+...
+
+IMPRESSION:
+...
 ```
 
 ---
 
-# 💾 Model Checkpoint
+# 📈 Phase 05 — Evaluation
 
-The trained model can be saved with:
+Evaluation will move beyond ordinary text-generation metrics.
+
+### NLP Metrics
+
+* [ ] BLEU
+* [ ] ROUGE
+* [ ] METEOR
+* [ ] CIDEr
+* [ ] BERTScore
+
+### Medical Evaluation
+
+* [ ] Clinical label agreement
+* [ ] Finding-level accuracy
+* [ ] Factual consistency
+* [ ] Hallucination rate
+* [ ] Negation accuracy
+* [ ] Uncertainty handling
+* [ ] Human/radiologist evaluation
+
+The objective is to determine whether generated text is actually supported by the image rather than merely being linguistically fluent.
+
+---
+
+# 🧪 Phase 06 — Model Improvements
+
+Future architecture:
+
+```text
+             X-RAY IMAGE
+                  │
+                  ▼
+        ┌──────────────────┐
+        │ Vision Transformer│
+        └────────┬─────────┘
+                 │
+          Patch Representations
+                 │
+                 ▼
+        ┌──────────────────┐
+        │ Multimodal       │
+        │ Connector        │
+        └────────┬─────────┘
+                 │
+                 ▼
+        ┌──────────────────┐
+        │ Medical Language │
+        │      Model       │
+        └────────┬─────────┘
+                 │
+                 ▼
+        Structured Report
+```
+
+Potential experiments:
+
+* [ ] Better vision encoder
+* [ ] Better language decoder
+* [ ] Multi-token visual prefix
+* [ ] Cross-attention
+* [ ] LoRA
+* [ ] QLoRA
+* [ ] Contrastive alignment
+* [ ] Instruction tuning
+* [ ] Retrieval augmentation
+* [ ] Uncertainty estimation
+* [ ] Hallucination detection
+
+---
+
+# 🌐 Project Website
+
+The project will have a dedicated website containing:
+
+```text
+HOME
+ │
+ ├── Overview
+ │
+ ├── Architecture
+ │
+ ├── Demo
+ │
+ ├── Results
+ │
+ ├── Roadmap
+ │
+ ├── Research
+ │
+ └── Documentation
+```
+
+### Website
+
+**Live project website:**
+
+`https://salvapiol45tech.github.io/medical-xray-report-generator/`
+
+GitHub Pages can publish a project website directly from a repository, and GitHub Actions can automate deployment whenever the project is updated.
+
+> The website should be activated once the repository and Pages deployment are configured; the URL above should not be presented as live until that deployment actually exists.
+
+---
+
+# 🖥️ Planned Interactive Demo
+
+The next version will provide a browser interface:
+
+```text
+┌──────────────────────────────────────────┐
+│      MEDICAL X-RAY REPORT GENERATOR      │
+├──────────────────────────────────────────┤
+│                                          │
+│        ┌──────────────────────┐          │
+│        │                      │          │
+│        │    Upload X-Ray      │          │
+│        │                      │          │
+│        └──────────────────────┘          │
+│                                          │
+│              [ Analyze ]                 │
+│                                          │
+├──────────────────────────────────────────┤
+│ Generated Report                         │
+│                                          │
+│ Findings:                                │
+│ ...                                      │
+│                                          │
+│ Impression:                              │
+│ ...                                      │
+└──────────────────────────────────────────┘
+```
+
+The demo will only be enabled for appropriately evaluated models and will clearly display the research/educational status of the system.
+
+---
+
+# 💾 Checkpoint
+
+The current trained checkpoint is:
+
+```text
+minillava_model.pt
+```
+
+Save:
 
 ```python
 torch.save(
@@ -307,7 +629,7 @@ torch.save(
 )
 ```
 
-Load it later with:
+Load:
 
 ```python
 model = MiniLLaVA_Simple()
@@ -319,249 +641,198 @@ model.load_state_dict(
 
 ---
 
-# 🛠️ Technology Stack
-
-| Technology                | Purpose           |
-| ------------------------- | ----------------- |
-| Python                    | Programming       |
-| PyTorch                   | Deep Learning     |
-| Hugging Face Transformers | CLIP + GPT-2      |
-| CLIP                      | Vision Encoder    |
-| GPT-2                     | Language Decoder  |
-| PIL                       | Image Processing  |
-| CUDA                      | GPU Acceleration  |
-| tqdm                      | Training Progress |
-
----
-
-# 📁 Project Structure
-
-A recommended repository structure:
+# 📁 Repository Structure
 
 ```text
 medical-xray-report-generator/
 │
-├── notebook/
+├── README.md
+├── LICENSE
+├── requirements.txt
+│
+├── notebooks/
 │   └── medical_xray_vlm.ipynb
 │
 ├── src/
 │   ├── model.py
 │   ├── dataset.py
 │   ├── train.py
-│   └── inference.py
+│   ├── inference.py
+│   └── evaluation.py
 │
 ├── checkpoints/
 │   └── minillava_model.pt
 │
-├── README.md
-├── requirements.txt
-└── LICENSE
+├── data/
+│   └── README.md
+│
+├── website/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+│
+└── outputs/
+    ├── reports/
+    └── evaluation/
 ```
 
 ---
 
 # ⚙️ Installation
 
-Clone the repository:
-
 ```bash
 git clone https://github.com/SalvaPiol45Tech/medical-xray-report-generator.git
 
 cd medical-xray-report-generator
+
+pip install -r requirements.txt
 ```
 
-Install dependencies:
-
-```bash
-pip install torch torchvision transformers pillow tqdm
-```
-
-For GPU training, install the appropriate CUDA-enabled PyTorch version for your system.
-
----
-
-# ▶️ Running the Project
-
-Start the notebook:
+Run the notebook:
 
 ```bash
 jupyter notebook
 ```
 
-Then run the cells sequentially.
+Or run the training pipeline:
 
-The pipeline will:
-
-```text
-1. Load CLIP
-2. Load GPT-2
-3. Freeze pretrained models
-4. Create projection layer
-5. Build dataset
-6. Train projection
-7. Generate captions
-8. Save checkpoint
+```bash
+python src/train.py
 ```
 
 ---
 
-# 🧬 From Prototype to Real Medical AI
+# 🧰 Technology Stack
 
-The next stage is replacing the synthetic experiment with a real chest X-ray dataset.
+### Machine Learning
 
-Potential research datasets include:
+* Python
+* PyTorch
+* Hugging Face Transformers
 
-* CheXpert
-* MIMIC-CXR
-* IU X-Ray
-* Open-i
+### Computer Vision
 
-A real training pipeline would require:
+* CLIP
+* Vision Transformers
+* PIL
 
-```text
-Real X-Ray Images
-        +
-Medical Reports
-        ↓
-Dataset Cleaning
-        ↓
-Train / Validation / Test Split
-        ↓
-Image Preprocessing
-        ↓
-CLIP Feature Extraction
-        ↓
-Vision-Language Alignment
-        ↓
-GPT-2 / Modern LLM Fine-Tuning
-        ↓
-Medical Report Generation
-        ↓
-Evaluation
-```
+### NLP
 
----
+* GPT-2
+* Transformer embeddings
+* Autoregressive generation
 
-# 📈 Future Improvements
+### Engineering
 
-## Vision-Language Architecture
+* CUDA
+* Git
+* GitHub
+* GitHub Actions
+* GitHub Pages
 
-* Replace the single visual token with multiple visual tokens
-* Use CLIP patch-level features
-* Add cross-attention
-* Add a Q-Former-style connector
-* Experiment with larger vision encoders
-* Experiment with modern vision-language models
+### Future
 
-## Language Model
-
-* Replace GPT-2 with a stronger decoder
-* Experiment with instruction-tuned LLMs
-* Fine-tune using LoRA/QLoRA
-* Improve medical vocabulary handling
-* Add structured report generation
-
-## Medical Training
-
-* Train on real chest X-ray/report pairs
-* Handle multiple findings per image
-* Model uncertainty
-* Address class imbalance
-* Separate findings from clinical impressions
-* Evaluate hallucination rates
-
-## Evaluation
-
-Potential metrics include:
-
-```text
-BLEU
-ROUGE
-METEOR
-CIDEr
-BERTScore
-Clinical efficacy metrics
-CheXpert-based label agreement
-Hallucination analysis
-```
-
-For medical report generation, text similarity alone is not enough; clinical correctness and factual consistency are important research considerations.
+* FastAPI
+* Docker
+* Cloud GPU
+* Experiment tracking
+* Model evaluation pipeline
 
 ---
 
-# 🔬 Research Questions
+# 🔬 Research Direction
 
-This project can be extended into several research directions:
-
-### 1. Visual Token Alignment
-
-Can a lightweight projection layer effectively align visual representations with a frozen language model?
-
-### 2. Parameter-Efficient Multimodal Learning
-
-How much multimodal performance can be obtained while training only a small connector?
-
-### 3. Medical Vision-Language Generation
-
-Can general-purpose vision and language representations be adapted to medical report generation?
-
-### 4. Hallucination Reduction
-
-How can a vision-language model reduce clinically incorrect findings that are not supported by the image?
-
-### 5. Efficient VLM Training
-
-Can parameter-efficient methods such as LoRA produce competitive results with substantially lower computational requirements?
-
----
-
-# 🧠 What This Project Demonstrates
-
-This prototype demonstrates the fundamental mechanics of a Vision-Language Model:
+This project is part of a broader exploration of:
 
 ```text
 Computer Vision
-       +
-Representation Learning
-       +
-Multimodal Alignment
-       +
-Language Modeling
-       =
-Vision-Language Generation
+       ↓
+Multimodal Learning
+       ↓
+Vision-Language Models
+       ↓
+Reasoning
+       ↓
+Medical AI
 ```
 
-More specifically, it demonstrates how a visual representation can be transformed into a language-model-compatible representation and injected into a pretrained autoregressive language model.
+The long-term research question is:
+
+> **How can multimodal AI systems generate language that is both fluent and faithfully grounded in complex visual evidence?**
+
+Medical imaging provides a challenging environment for studying this problem because a useful system must go beyond generating plausible language.
+
+It must generate language that is:
+
+```text
+Visually Grounded
+       +
+Factually Consistent
+       +
+Medically Relevant
+       +
+Uncertainty Aware
+```
+
+---
+
+# 📌 Project Philosophy
+
+This project follows three principles:
+
+### 1. Build From the Architecture
+
+Understand how the multimodal system works rather than treating a pretrained model as a black box.
+
+### 2. Measure What Actually Works
+
+A lower training loss or fluent sentence does not automatically mean that the model understands the image.
+
+### 3. Progress From Prototype → Real System
+
+```text
+Proof of Concept
+      ↓
+Real Data
+      ↓
+Better Architecture
+      ↓
+Evaluation
+      ↓
+Deployment
+```
 
 ---
 
 # ⚠️ Medical Disclaimer
 
-This repository is a research and educational project.
+This project is for **research and educational purposes only**.
 
-It is **not a medical device**, diagnostic system, clinical decision-support system, or substitute for professional medical advice.
+It is not a medical device.
 
-Generated text may be incorrect, incomplete, misleading, or clinically unsafe.
+It has not been clinically validated.
 
-Do not use outputs from this project to diagnose, treat, or make decisions about patients.
+The model may generate incorrect, incomplete, or hallucinated information.
 
----
+The outputs must not be used for:
 
-# 📚 References
+* diagnosis
+* treatment
+* triage
+* patient management
+* clinical decision-making
 
-* Radford et al. — *Learning Transferable Visual Models From Natural Language Supervision*
-* Radford et al. — *Improving Language Understanding by Generative Pre-Training*
-* Liu et al. — *Visual Instruction Tuning*
-* Irvin et al. — *CheXpert: A Large Chest Radiograph Dataset with Uncertainty Labels and Expert Comparison*
-* Johnson et al. — *MIMIC-CXR: A Large Publicly Available Database of Labeled Chest Radiographs*
+Any future clinical application would require appropriate medical validation, safety evaluation, regulatory review, and professional oversight.
 
 ---
 
 # 👨‍💻 Author
 
-**Salva Piol**
+## Salva Piol
 
-AI / Machine Learning Engineer focused on:
+**AI / Machine Learning Engineer**
+
+### Areas of Focus
 
 ```text
 Python
@@ -571,21 +842,11 @@ Computer Vision
 Transformers
 Multimodal AI
 Vision-Language Models
+Medical AI
 AI Agents
 Reasoning & Planning
 ```
 
 ---
 
-## ⭐ Project Status
-
-```text
-Status: Research Prototype
-Architecture: CLIP + Projection + GPT-2
-Training: Completed on synthetic demonstration data
-Inference: Working
-Medical Validation: Not performed
-Real Dataset Training: Planned
-```
-
-If you find the project useful, consider giving the repository a ⭐.
+# 📊 Project
